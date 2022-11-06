@@ -1,0 +1,131 @@
+<html>
+    <head>
+        <link rel="stylesheet" 
+            href="https://pyscript.net/alpha/pyscript.css" />
+        <script defer 
+            src="https://pyscript.net/alpha/pyscript.js">
+        </script>
+        <link rel="stylesheet" 
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <py-env>
+            - matplotlib
+            - pandas
+            - numpy
+            - plotly
+        </py-env>
+        <script type='text/javascript'>
+            function plot(graph, chart) {
+                var figure = JSON.parse(graph)
+                Plotly.newPlot(chart, figure, {});
+            }
+        </script>
+    </head>
+    <body>
+        <py-script> print('Now you can!') </py-script>
+        <div class="jumbotron">
+            <h1>Weather Data</h1>
+            <p class="lead">
+                Some graphs about the weather in London in 2020
+            </p>
+        </div>
+        <div class="row">
+            <div class="col-sm-2 p-2 ml-4 mb-1">
+                <button type="button" class="btn btn-secondary">Select chart from list:</button>
+            </div>
+            <div class="col-sm-4 p-2 mr-4 mb-1">
+                <select class="form-control" id="select">
+                    <option value="Tmax">Maximum Temperature</option>
+                    <option value="Tmin">Minimum Temperature</option>
+                    <option value="Sun">Sun</option>
+                    <option value="Rain">Rain</option>        
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+               <div id="chart1"></div>
+            </div>
+         </div>
+         <py-script>
+            # Import libraries
+            import pandas as pd
+            import numpy as np
+            import matplotlib.pyplot as plt
+            import js
+            import json
+            import plotly
+            import plotly.express as px
+            import plotly.graph_objects as go
+            
+            # Get Ashka Data
+            #reading the required data
+            from pyodide.http import open_url
+            <!-- url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/blob/master/ConflictRecurrenceDatabase.csv'
+            url_content = open_url(url)
+            wps_index= pd.read_csv(url_content, encoding = 'unicode_escape') -->
+            url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'
+            url_content = open_url(url)
+            <!-- conflict_recurrence = pd.read_csv(url_content) -->
+            df = pd.read_csv(url_content)
+
+            cols_dd = np.array(df.columns)[2:]
+            fig = go.Figure()
+
+            for i, value in enumerate(cols_dd):
+                # use a different color axis for each trace... makes it more responsive
+                ca = f"coloraxis{i+2}"
+
+                figc = px.choropleth(
+                    df,
+                    locations="Country",  # Spatial coordinates
+                    color=value,  # Data to be color-coded
+                    color_continuous_scale="deep",    #   this value is not being honored, if I change it, the colors do not change
+                    hover_name="Country",
+                    scope="world", locationmode = 'country names'
+                ).update_traces(visible= True if value==cols_dd[0] else False
+                                , coloraxis=ca
+                            )
+            
+                fig = fig.add_traces(figc.data)
+                fig.update_layout(title =f"<b>{cols_dd[0]}</b>  ") 
+                fig = fig.update_layout(
+                    {
+                        ca: {
+                            "cmin": df[value].replace(0, np.nan).quantile(0.25),
+                            "cmax": df[value].replace(0, np.nan).quantile(0.75),
+                            "colorbar": {"title": value},
+                        }
+                    }
+                )
+
+                fig.update_layout(  geo_scope='world')
+
+                fig.update_layout(
+                    updatemenus=[
+                        {
+                            "buttons": [
+                                {
+                                    "label": f"{m}",
+                                    "method": "update",
+                                    "args": [
+                                        {
+                                            "visible": [
+                                                (m2 == m )
+                                                for m2 in cols_dd
+                                            ]
+                                        },
+                                        {"title": f"<b>{m}</b> "},
+                                    ],
+                                }
+                                for m in cols_dd
+                            ]
+                        }
+                    ],
+                    margin={"l": 0, "r": 0, "t": 25, "b": 0},
+                )
+                graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                js.plot(graphJSON,"chart1")
+            </py-script>
+    </body>
+</html>
