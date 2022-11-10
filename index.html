@@ -13,6 +13,7 @@
             - pandas
             - numpy
             - plotly
+            - seaborn
         </py-env>
         <script type='text/javascript'>
             function plot(graph, chart) {
@@ -22,30 +23,19 @@
         </script>
     </head>
     <body>
-        <py-script> print('Now you can!') </py-script>
         <div class="jumbotron">
-            <h1>Weather Data</h1>
+            <h1>Impact of Conflicts on Women Development</h1>
             <p class="lead">
-                Some graphs about the weather in London in 2020
+                Graphs for WPS Index and conflicts intensity across countries
             </p>
         </div>
         <div class="row">
-            <div class="col-sm-2 p-2 ml-4 mb-1">
-                <button type="button" class="btn btn-secondary">Select chart from list:</button>
-            </div>
-            <div class="col-sm-4 p-2 mr-4 mb-1">
-                <select class="form-control" id="select">
-                    <option value="Tmax">Maximum Temperature</option>
-                    <option value="Tmin">Minimum Temperature</option>
-                    <option value="Sun">Sun</option>
-                    <option value="Rain">Rain</option>        
-                </select>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-6 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+            <div class="col-sm-5 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
                <div id="chart1"></div>
             </div>
+            <div class="col-sm-5 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+                <div id="chart2"></div>
+             </div>
          </div>
          <py-script>
             # Import libraries
@@ -68,6 +58,10 @@
             url_content = open_url(url)
             <!-- conflict_recurrence = pd.read_csv(url_content) -->
             df = pd.read_csv(url_content)
+
+            url2 = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/blob/master/ConflictRecurrenceDatabase.csv'
+            url_content2 = open_url(url2)
+            df2 = pd.read_csv(url_content2)
 
             cols_dd = np.array(df.columns)[2:]
             fig = go.Figure()
@@ -127,5 +121,157 @@
                 graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
                 js.plot(graphJSON,"chart1")
             </py-script>
+
+            <!-- <div class="row">
+                <div class="col-sm-6 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+                   <div id="chart2"></div>
+                </div>
+             </div> -->
+             <py-script>
+                # Import libraries
+                import pandas as pd
+                import numpy as np
+                import matplotlib.pyplot as plt
+                import js
+                import json
+                import plotly
+                import plotly.express as px
+                import plotly.graph_objects as go
+                
+                # Get Ashka Data
+                #reading the required data
+                from pyodide.http import open_url
+            
+                url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'
+                url_content = open_url(url)
+                <!-- conflict_recurrence = pd.read_csv(url_content) -->
+                df = pd.read_csv(url_content)
+           
+                url2 = "https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv"
+                url_content2 = open_url(url2)
+                df2 = pd.read_csv(url_content2)
+                wps_index = df
+                conflict_recurrence = df2
+               
+
+                conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
+                conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
+                conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
+                conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
+
+                conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
+                conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
+                conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
+                conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
+
+                combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country')
+                chk=combined[['Country','WPS_Index_score_2021','conflict_years']]
+                chk = pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
+
+                df = conflict_years_agg
+
+                cols_dd = ['conflict_years']
+
+                fig = go.Figure()
+
+                for i, value in enumerate(cols_dd):
+                    # use a different color axis for each trace... makes it more responsive
+                    ca = f"coloraxis{i+2}"
+
+                    figc = px.choropleth(
+                        df,
+                        locations="country",  # Spatial coordinates
+                        color=value,  # Data to be color-coded
+                        color_continuous_scale="deep",    #   this value is not being honored, if I change it, the colors do not change
+                        hover_name="country",
+                        scope="world", locationmode = 'country names'
+                    ).update_traces(visible= True if value==cols_dd[0] else False
+                                    , coloraxis=ca
+                                )
+                
+                    fig = fig.add_traces(figc.data)
+                    fig.update_layout(title =f"<b>{cols_dd[0]}</b>  ") 
+                    fig = fig.update_layout(
+                        {
+                            ca: {
+                                "cmin": df[value].replace(0, np.nan).quantile(0.25),
+                                "cmax": df[value].replace(0, np.nan).quantile(0.75),
+                                "colorbar": {"title": value},
+                            }
+                        }
+                    )
+
+                fig.update_layout(geo_scope='world')
+
+                graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                js.plot(graphJSON,"chart2")
+                </py-script>  
+            
+            <div class="row">
+                <div class="col-sm-11 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+                    <div id="chart3"></div>
+                </div>
+            </div>
+                <py-script>
+                    # WPS v/s conflict plot
+                    # Import libraries
+                    import pandas as pd
+                    import numpy as np
+                    import matplotlib.pyplot as plt
+                    import js
+                    import json
+                    import plotly
+                    import plotly.express as px
+                    import plotly.graph_objects as go
+                    
+                    # Get Ashka Data
+                    #reading the required data
+                    from pyodide.http import open_url
+            
+                    url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'
+                    url_content = open_url(url)
+                    <!-- conflict_recurrence = pd.read_csv(url_content) -->
+                    df = pd.read_csv(url_content)
+                   
+                    url2 = "https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv"
+                    url_content2 = open_url(url2)
+                    df2 = pd.read_csv(url_content2)
+                    wps_index = df
+                    conflict_recurrence = df2
+
+                    conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
+                    conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
+                    conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
+                    conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
+
+                    conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
+                    conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
+                    conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
+                    conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
+
+                    combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country')
+                    chk=combined[['Country','WPS_Index_score_2021','conflict_years']]
+                    chk = pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
+
+                    import seaborn as sns
+
+                    # use the function regplot to make a scatterplot
+                    fig = plt.figure(figsize=(30,15))
+                    sns.regplot(x=chk["WPS_Index_score_2021"], y=chk["conflict_years"],label='Country')
+                    
+                    # add annotations one by one with a loop
+                    for line in range(0,chk.shape[0]):
+                        plt.text(chk.WPS_Index_score_2021[line]
+                                , chk.conflict_years[line]
+                                , chk.Country[line]
+                                , horizontalalignment='left'
+                                , size=15
+                                , color='black'
+                                , weight='light')
+
+                    plt.show()
+                    pyscript.write("chart3",fig)                 
+                </py-script>   
+
     </body>
 </html>
