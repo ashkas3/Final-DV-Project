@@ -24,9 +24,20 @@
     </head>
     <body>
         <div class="jumbotron">
-            <h1>Impact of Conflicts on Women Development</h1>
+            <h1>Impact of Conflict on Women's Wellbeing</h1>
+            <h5><i>Data Visualisation that explores the impact of recurring conflict on the wellbeing of women.</i></h5>
             <p class="lead">
-                Graphs for WPS Index and conflicts intensity across countries
+                One of our teammates belongs to Kashmir- the most militarized region in the world. Although, the conflict in Kashmir has always been counted by the civilians and armed forces casualties, there is less acknowledgement of other slow gender-based insidious outcomes of conflict. The women in conflict zones get impacted due to a lack of agency and platforms to raise their voices. The impact is more pronounced when the duration  of the conflict increases.
+            </p>
+            <p class="lead">
+                Through our project we aim to understand the relationship between conflict in different countries and on the well-being of women-which can be measured by the Women Peace and Security Index (WPS Index). 
+                The WPS Index measures the well-being of women across countries globally by scoring and ranking three basic dimensions- inclusion (economic, social, political); justice (formal laws and informal discrimination); and security (at the family, community, and societal levels)—which are captured and quantified through 11 indicators, where a higher score indicates better performance. The data is collected by Georgetown Institute for Women, Peace and Security for 2021/2022 and has ranked 170 countries on the 11 indicators.
+            </p>
+            <p class="lead">
+                The other measure is the years of conflict, that is how long has the conflict been ongoing in a country. The data is collected by the Uppsala Conflict Data Program (UCDP). ​​The episodes identified in the PRIO Conflict Recurrence Database follows the state-based conflicts identified by UCDP data, but are extended to include all violent events related to that conflict, rather than relying on the commonly used 25-death threshold. The conflict is counted as recurring when there is at least one calendar year between the last event in the previous episode, and the first event in the following episode. 
+            </p>
+            <p class="lead">
+                Some countries have recurring conflicts which have been ongoing since decades. It will be interesting to see the relationship between the recurring nature of conflict on the WPS index.
             </p>
         </div>
         <div class="row">
@@ -51,7 +62,7 @@
             # Get Ashka Data
             #reading the required data
             from pyodide.http import open_url
-            <!-- url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/blob/master/ConflictRecurrenceDatabase.csv'
+            <!-- url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'
             url_content = open_url(url)
             wps_index= pd.read_csv(url_content, encoding = 'unicode_escape') -->
             url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'
@@ -59,7 +70,7 @@
             <!-- conflict_recurrence = pd.read_csv(url_content) -->
             df = pd.read_csv(url_content)
 
-            url2 = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/blob/master/ConflictRecurrenceDatabase.csv'
+            url2 = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'
             url_content2 = open_url(url2)
             df2 = pd.read_csv(url_content2)
 
@@ -94,7 +105,7 @@
                 )
 
                 fig.update_layout(  geo_scope='world')
-
+            
                 fig.update_layout(
                     updatemenus=[
                         {
@@ -116,18 +127,14 @@
                             ]
                         }
                     ],
-                    margin={"l": 0, "r": 0, "t": 25, "b": 0},
+                    autosize=False,
+                    margin={"l": 10, "r": 120, "t": 30, "b": 10, "autoexpand":True}
                 )
+                
                 graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
                 js.plot(graphJSON,"chart1")
             </py-script>
-
-            <!-- <div class="row">
-                <div class="col-sm-6 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
-                   <div id="chart2"></div>
-                </div>
-             </div> -->
-             <py-script>
+            <py-script>
                 # Import libraries
                 import pandas as pd
                 import numpy as np
@@ -152,7 +159,6 @@
                 df2 = pd.read_csv(url_content2)
                 wps_index = df
                 conflict_recurrence = df2
-               
 
                 conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
                 conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
@@ -201,12 +207,29 @@
                         }
                     )
 
-                fig.update_layout(geo_scope='world')
+                    fig.update_layout(geo_scope='world',  title_text = 'Conflict years across countries')
 
+                    fig.update_layout(
+                            autosize=False,
+                            margin = dict(
+                                    l=5,
+                                    r=140,
+                                    b=5,
+                                    t=30,
+                                    pad=4,
+                                    autoexpand=False
+                                ),
+                                width=700
+                        )
                 graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
                 js.plot(graphJSON,"chart2")
                 </py-script>  
-            
+            <div class="jumbotron">
+                <p class="lead">
+                    There is an evident relationship between WPS Index and recurring conflict. However, some markers in the WPS index get more impacted than others.
+                    Amongst all WPS markers, education,  financial inclusion, legal discrimination and initmate partner violence get overall impacted the most by recurring violence the most.
+                </p>
+            </div>
             <div class="row">
                 <div class="col-sm-11 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
                     <div id="chart3"></div>
@@ -258,20 +281,32 @@
                     # use the function regplot to make a scatterplot
                     fig = plt.figure(figsize=(30,15))
                     sns.regplot(x=chk["WPS_Index_score_2021"], y=chk["conflict_years"],label='Country')
-                    
+                    plt.title('WPS Index Score 2021 vs. Conflict years', fontsize=20)
+                    plt.xlabel('WPS Index Score 2021', fontsize=16)
+                    plt.ylabel('Conflict years', fontsize=16)
+
                     # add annotations one by one with a loop
                     for line in range(0,chk.shape[0]):
                         plt.text(chk.WPS_Index_score_2021[line]
                                 , chk.conflict_years[line]
                                 , chk.Country[line]
                                 , horizontalalignment='left'
-                                , size=15
+                                , size=13
                                 , color='black'
                                 , weight='light')
 
                     plt.show()
                     pyscript.write("chart3",fig)                 
                 </py-script>   
+            <div class="jumbotron">
+                <p class="lead">
+                    As evident in the plot between WPS Index and conflict years, a rise in conflict years reduces WPS Index (excluding the outlier, India with 178 years of conflict). Most countries who rank high on conflict years rank low on the WPS index. Three out of four countries who rank in the bottom quartile for WPS have an ongoing recurring conflict. 
+                </p>
+                <p class="lead">
+                    While most countries comply with the relationship between WPS and Conflict years, we discovered another factor that may impact the WPS Index-The Human Development Index. Countries with lower Human Development Index have much lower WPS due to conflict compared to countries with the same conflict years.
+                    We will explore this relation in detail in the second half of our project.
+                </p>
+            </div>
 
     </body>
 </html>
