@@ -124,11 +124,17 @@
                                     ],
                                 }
                                 for m in cols_dd
-                            ]
+                            ],
+                            "showactive":True,
+                            "x":0.1,
+                            "xanchor":"left",
+                            "y":1.1,
+                            "yanchor":"top",
+                            "pad": {"l": -10, "t": -5},
                         }
                     ],
                     autosize=False,
-                    margin={"l": 10, "r": 120, "t": 30, "b": 10, "autoexpand":True}
+                    <!-- margin={"l": 10, "r": 120, "t": 30, "b": 10, "autoexpand":True} -->
                 )
                 
                 graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
