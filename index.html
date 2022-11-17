@@ -242,47 +242,66 @@
                 </div>
             </div>
                 <py-script>
-                    # WPS v/s conflict plot
-                    # Import libraries
+
+                    #import required libraries
                     import pandas as pd
                     import numpy as np
-                    import matplotlib.pyplot as plt
-                    import js
-                    import json
-                    import plotly
+                    #import chart_studio.plotly as py
+                    #import cufflinks as cf
+                    import seaborn as sns
                     import plotly.express as px
-                    import plotly.graph_objects as go
-                    
-                    # Get Ashka Data
-                    #reading the required data
-                    from pyodide.http import open_url
-            
-                    url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'
-                    url_content = open_url(url)
-                    <!-- conflict_recurrence = pd.read_csv(url_content) -->
-                    df = pd.read_csv(url_content)
-                   
-                    url2 = "https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv"
-                    url_content2 = open_url(url2)
-                    df2 = pd.read_csv(url_content2)
-                    wps_index = df
-                    conflict_recurrence = df2
+                    import matplotlib.pyplot as plt
+                    import numpy as np
 
+                    print(1)
+
+                    #reading the required data
+                    wps_index= pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'),encoding= 'unicode_escape')
+                    conflict_recurrence = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'))
+                    
+                    print(2)
+
+                    #correcting data types
                     conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
                     conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
                     conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
                     conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
 
+                    print(3)
+
+                    #creating new columns
                     conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
                     conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
                     conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
                     conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
 
-                    combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country')
-                    chk=combined[['Country','WPS_Index_score_2021','conflict_years']]
-                    chk = pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
+                    print(4)
 
-                    import seaborn as sns
+                    #mapping the country names
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Myanmar (Burma)','Myanmar')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Yemen (North Yemen)', 'Yemen')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Cambodia (Kampuchea)','Cambodia')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Russia (Soviet Union)','Russian Federation')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Serbia (Yugoslavia)','Serbia')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Bosnia-Herzegovina','Bosnia and Herzegovina')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Guinea-Bissau','Equatorial Guinea')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Macedonia, FYR','North Macedonia')    
+                    
+                    print(5)
+
+                    #merging WPS and conflict data
+                    combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country', how='left')
+
+                    combined['WPS_index_deciles'] = pd.qcut(combined['WPS_Index_score_2021'], q=10, precision=0, labels=[1,2,3,4,5,6,7,8,9,10])
+                    x=combined[combined['WPS_index_deciles'] == 10]['conflict_years'].fillna(0)
+                    combined[combined['WPS_index_deciles'] == 10] = combined[combined['WPS_index_deciles'] == 10].assign(conflict_years=x)
+                    combined['conflict_years'] = combined['conflict_years'].fillna(combined.groupby('WPS_index_deciles')['conflict_years'].transform('median'))
+
+                    combined['conflict_year_deciles'] = pd.qcut(combined['conflict_years'], q=4, precision=0 , labels=[1,2,3,4])
+
+                    chk=combined[['Country','WPS_Index_score_2021','conflict_years','WPS_index_deciles','conflict_year_deciles']]
+                    chk=pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
+                    chk=chk.sort_values(by=['conflict_years'])
 
                     # use the function regplot to make a scatterplot
                     fig = plt.figure(figsize=(30,15))
@@ -313,6 +332,168 @@
                     We will explore this relation in detail in the second half of our project.
                 </p>
             </div>
+            <div class="row">
+                <div class="col-sm-11 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+                    <div id="chart4"></div>
+                </div>
+            </div>
+                <py-script>
+                    #import required libraries
+                    import pandas as pd
+                    import numpy as np
+                    #import chart_studio.plotly as py
+                    #import cufflinks as cf
+                    import seaborn as sns
+                    import plotly.express as px
+                    import matplotlib.pyplot as plt
+                    import numpy as np
+                    
 
+                    #reading the required data
+                    wps_index= pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'),encoding= 'unicode_escape')
+                    conflict_recurrence = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'))
+                    
+                    #correcting data types
+                    conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
+                    conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
+                    conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
+                    conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
+
+                    #creating new columns
+                    conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
+                    conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
+                    conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
+                    conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
+
+                    #mapping the country names
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Myanmar (Burma)','Myanmar')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Yemen (North Yemen)', 'Yemen')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Cambodia (Kampuchea)','Cambodia')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Russia (Soviet Union)','Russian Federation')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Serbia (Yugoslavia)','Serbia')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Bosnia-Herzegovina','Bosnia and Herzegovina')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Guinea-Bissau','Equatorial Guinea')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Macedonia, FYR','North Macedonia')    
+                    
+                    #merging WPS and conflict data
+                    combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country', how='left')
+
+                    combined['WPS_index_deciles'] = pd.qcut(combined['WPS_Index_score_2021'], q=10, precision=0, labels=[1,2,3,4,5,6,7,8,9,10])
+                    x=combined[combined['WPS_index_deciles'] == 10]['conflict_years'].fillna(0)
+                    combined[combined['WPS_index_deciles'] == 10] = combined[combined['WPS_index_deciles'] == 10].assign(conflict_years=x)
+                    combined['conflict_years'] = combined['conflict_years'].fillna(combined.groupby('WPS_index_deciles')['conflict_years'].transform('median'))
+
+                    combined['conflict_year_deciles'] = pd.qcut(combined['conflict_years'], q=4, precision=0 , labels=[1,2,3,4])
+
+                    chk=combined[['Country','WPS_Index_score_2021','conflict_years','WPS_index_deciles','conflict_year_deciles']]
+                    chk=pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
+                    chk=chk.sort_values(by=['conflict_years'])
+
+                    print(3)
+
+                    #Visualizing cases over time across countries
+                    # chk=combined[['Country','WPS_Index_score_2021','conflict_years']]
+                    fig = px.choropleth(chk, locations="Country", 
+                                        color=chk["WPS_Index_score_2021"],
+                                        locationmode='country names', hover_name="Country", hover_data=["WPS_Index_score_2021",'conflict_years'],
+                                        animation_frame=chk["conflict_years"],
+                                        animation_group=chk["Country"],
+                                        range_color=[0,1],
+                                        title='Cases over time across countries', color_continuous_scale=px.colors.sequential.Plasma)
+                    print(4)
+
+                    fig.update(layout_coloraxis_showscale=True)
+                    print(5)
+                    #fig.show()
+                    print(6)
+                    
+                    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                    js.plot(graphJSON,"chart4")
+                </py-script>
+            <div class="row">
+                <div class="col-sm-11 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+                    <div id="chart5"></div>
+                </div>
+            </div>
+                <py-script>
+                    #import required libraries
+                    import pandas as pd
+                    import numpy as np
+                    #import chart_studio.plotly as py
+                    #import cufflinks as cf
+                    import seaborn as sns
+                    import plotly.express as px
+                    import matplotlib.pyplot as plt
+                    import numpy as np
+                    
+
+                    #reading the required data
+                    wps_index= pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'),encoding= 'unicode_escape')
+                    conflict_recurrence = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'))
+                    
+                    #correcting data types
+                    conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
+                    conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
+                    conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
+                    conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
+
+                    #creating new columns
+                    conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
+                    conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
+                    conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
+                    conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
+
+                    #mapping the country names
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Myanmar (Burma)','Myanmar')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Yemen (North Yemen)', 'Yemen')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Cambodia (Kampuchea)','Cambodia')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Russia (Soviet Union)','Russian Federation')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Serbia (Yugoslavia)','Serbia')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Bosnia-Herzegovina','Bosnia and Herzegovina')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Guinea-Bissau','Equatorial Guinea')
+                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Macedonia, FYR','North Macedonia')    
+                    
+                    #merging WPS and conflict data
+                    combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country', how='left')
+
+                    combined['WPS_index_deciles'] = pd.qcut(combined['WPS_Index_score_2021'], q=10, precision=0, labels=[1,2,3,4,5,6,7,8,9,10])
+                    x=combined[combined['WPS_index_deciles'] == 10]['conflict_years'].fillna(0)
+                    combined[combined['WPS_index_deciles'] == 10] = combined[combined['WPS_index_deciles'] == 10].assign(conflict_years=x)
+                    combined['conflict_years'] = combined['conflict_years'].fillna(combined.groupby('WPS_index_deciles')['conflict_years'].transform('median'))
+
+                    combined['conflict_year_deciles'] = pd.qcut(combined['conflict_years'], q=4, precision=0 , labels=[1,2,3,4])
+
+                    chk=combined[['Country','WPS_Index_score_2021','conflict_years','WPS_index_deciles','conflict_year_deciles']]
+                    chk=pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
+                    chk=chk.sort_values(by=['conflict_years'])
+
+                    print(3)
+
+                    #radar plot
+
+                    combined_scatter=combined[['conflict_years','Financial_inclusion_perc','Employment_perc','Cell_phone_use_perc','Parliamentary_representation_perc','Perception_of_community_safety_perc','Intimate_partner_violence_perc','Discriminatry_norms_perc']]
+                    combined_scatter=combined_scatter.groupby('conflict_years').mean()
+                    combined_scatter.reset_index(inplace=True)
+                    plot_data = pd.melt(combined_scatter, id_vars='conflict_years', var_name='attribute', value_name='attribute_value')
+                    plot_data.head()
+
+                    fig = px.line_polar(plot_data,
+                                        r='attribute_value', 
+                                        theta='attribute',
+                                        line_close=True, 
+                                        animation_frame = 'conflict_years',
+                                        title='Spotify',
+                                        range_r=[0,100],
+                                        template = 'ggplot2'
+                                )
+                    fig.update_layout(
+                        autosize=False,
+                        height=600,
+                        width=800
+                    )
+                    
+                    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                    js.plot(graphJSON,"chart5")
+                </py-script>
     </body>
 </html>
