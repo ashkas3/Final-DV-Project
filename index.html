@@ -90,6 +90,7 @@
                         conflict_recurrence = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'))
                         HDI_data = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/HDI_data_3.csv'),encoding= 'unicode_escape')
         
+                        #Data creation
                         #correcting data types to datetime
                         conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
                         conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
