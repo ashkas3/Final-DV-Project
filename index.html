@@ -5,6 +5,9 @@
         <script defer 
             src="https://pyscript.net/alpha/pyscript.js">
         </script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600&display=swap" rel="stylesheet">
         <link rel="stylesheet" 
             href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -14,6 +17,7 @@
             - numpy
             - plotly
             - seaborn
+           
         </py-env>
         <script type='text/javascript'>
             function plot(graph, chart) {
@@ -22,474 +26,390 @@
             }
         </script>
     </head>
+    <style>
+        h5{
+            margin-right: 200;
+            margin-left: 200;
+            text-align: justify;
+            font-family: 'Roboto Slab', serif;
+            font-weight: bold;
+        }
+        .jumbotron{
+            font-family: 'Roboto Slab', serif;
+            margin-bottom: 0;
+        }
+        .lead{
+            margin-right: 200;
+            margin-left: 200;
+            text-align: justify;
+        }
+        .box{
+            background-color: white;
+        }
+    </style>
     <body>
-        <div class="jumbotron">
-            <h1>Impact of Conflict on Women's Wellbeing</h1>
-            <h5><i>Data Visualisation that explores the impact of recurring conflict on the wellbeing of women.</i></h5>
-            <p class="lead">
-                One of our teammates belongs to Kashmir- the most militarized region in the world. Although, the conflict in Kashmir has always been counted by the civilians and armed forces casualties, there is less acknowledgement of other slow gender-based insidious outcomes of conflict. The women in conflict zones get impacted due to a lack of agency and platforms to raise their voices. The impact is more pronounced when the duration  of the conflict increases.
-            </p>
-            <p class="lead">
-                Through our project we aim to understand the relationship between conflict in different countries and on the well-being of women-which can be measured by the Women Peace and Security Index (WPS Index). 
-                The WPS Index measures the well-being of women across countries globally by scoring and ranking three basic dimensions- inclusion (economic, social, political); justice (formal laws and informal discrimination); and security (at the family, community, and societal levels)—which are captured and quantified through 11 indicators, where a higher score indicates better performance. The data is collected by Georgetown Institute for Women, Peace and Security for 2021/2022 and has ranked 170 countries on the 11 indicators.
-            </p>
-            <p class="lead">
-                The other measure is the years of conflict, that is how long has the conflict been ongoing in a country. The data is collected by the Uppsala Conflict Data Program (UCDP). ​​The episodes identified in the PRIO Conflict Recurrence Database follows the state-based conflicts identified by UCDP data, but are extended to include all violent events related to that conflict, rather than relying on the commonly used 25-death threshold. The conflict is counted as recurring when there is at least one calendar year between the last event in the previous episode, and the first event in the following episode. 
-            </p>
-            <p class="lead">
-                Some countries have recurring conflicts which have been ongoing since decades. It will be interesting to see the relationship between the recurring nature of conflict on the WPS index.
-            </p>
-        </div>
-        <div class="row">
-            <div class="col-sm-5 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
-               <div id="chart1"></div>
-            </div>
-            <div class="col-sm-5 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
-                <div id="chart2"></div>
-             </div>
-         </div>
-         <py-script>
-            # Import libraries
-            import pandas as pd
-            import numpy as np
-            import matplotlib.pyplot as plt
-            import js
-            import json
-            import plotly
-            import plotly.express as px
-            import plotly.graph_objects as go
-            
-            # Get Ashka Data
-            #reading the required data
-            from pyodide.http import open_url
-            <!-- url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'
-            url_content = open_url(url)
-            wps_index= pd.read_csv(url_content, encoding = 'unicode_escape') -->
-            url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'
-            url_content = open_url(url)
-            <!-- conflict_recurrence = pd.read_csv(url_content) -->
-            df = pd.read_csv(url_content)
-
-            url2 = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'
-            url_content2 = open_url(url2)
-            df2 = pd.read_csv(url_content2)
-
-            cols_dd = np.array(df.columns)[2:]
-            fig = go.Figure()
-
-            for i, value in enumerate(cols_dd):
-                # use a different color axis for each trace... makes it more responsive
-                ca = f"coloraxis{i+2}"
-
-                figc = px.choropleth(
-                    df,
-                    locations="Country",  # Spatial coordinates
-                    color=value,  # Data to be color-coded
-                    color_continuous_scale="deep",    #   this value is not being honored, if I change it, the colors do not change
-                    hover_name="Country",
-                    scope="world", locationmode = 'country names'
-                ).update_traces(visible= True if value==cols_dd[0] else False
-                                , coloraxis=ca
-                            )
-            
-                fig = fig.add_traces(figc.data)
-                fig.update_layout(title =f"<b>{cols_dd[0]}</b>  ") 
-                fig = fig.update_layout(
-                    {
-                        ca: {
-                            "cmin": df[value].replace(0, np.nan).quantile(0.25),
-                            "cmax": df[value].replace(0, np.nan).quantile(0.75),
-                            "colorbar": {"title": value},
-                        }
-                    }
-                )
-
-                fig.update_layout(  geo_scope='world')
-            
-                fig.update_layout(
-                    updatemenus=[
-                        {
-                            "buttons": [
-                                {
-                                    "label": f"{m}",
-                                    "method": "update",
-                                    "args": [
-                                        {
-                                            "visible": [
-                                                (m2 == m )
-                                                for m2 in cols_dd
-                                            ]
-                                        },
-                                        {"title": f"<b>{m}</b> "},
-                                    ],
-                                }
-                                for m in cols_dd
-                            ],
-                            "showactive":True,
-                            "x":0.1,
-                            "xanchor":"left",
-                            "y":1.1,
-                            "yanchor":"top",
-                            "pad": {"l": -10, "t": -5},
-                        }
-                    ],
-                    autosize=False,
-                    <!-- margin={"l": 10, "r": 120, "t": 30, "b": 10, "autoexpand":True} -->
-                )
-                
-                graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                js.plot(graphJSON,"chart1")
-            </py-script>
-            <py-script>
-                # Import libraries
-                import pandas as pd
-                import numpy as np
-                import matplotlib.pyplot as plt
-                import js
-                import json
-                import plotly
-                import plotly.express as px
-                import plotly.graph_objects as go
-                
-                # Get Ashka Data
-                #reading the required data
-                from pyodide.http import open_url
-            
-                url = 'https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'
-                url_content = open_url(url)
-                <!-- conflict_recurrence = pd.read_csv(url_content) -->
-                df = pd.read_csv(url_content)
-           
-                url2 = "https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv"
-                url_content2 = open_url(url2)
-                df2 = pd.read_csv(url_content2)
-                wps_index = df
-                conflict_recurrence = df2
-
-                conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
-                conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
-                conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
-                conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
-
-                conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
-                conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
-                conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
-                conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
-
-                combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country')
-                chk=combined[['Country','WPS_Index_score_2021','conflict_years']]
-                chk = pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
-
-                df = conflict_years_agg
-
-                cols_dd = ['conflict_years']
-
-                fig = go.Figure()
-
-                for i, value in enumerate(cols_dd):
-                    # use a different color axis for each trace... makes it more responsive
-                    ca = f"coloraxis{i+2}"
-
-                    figc = px.choropleth(
-                        df,
-                        locations="country",  # Spatial coordinates
-                        color=value,  # Data to be color-coded
-                        color_continuous_scale="deep",    #   this value is not being honored, if I change it, the colors do not change
-                        hover_name="country",
-                        scope="world", locationmode = 'country names'
-                    ).update_traces(visible= True if value==cols_dd[0] else False
-                                    , coloraxis=ca
-                                )
-                
-                    fig = fig.add_traces(figc.data)
-                    fig.update_layout(title =f"<b>{cols_dd[0]}</b>  ") 
-                    fig = fig.update_layout(
-                        {
-                            ca: {
-                                "cmin": df[value].replace(0, np.nan).quantile(0.25),
-                                "cmax": df[value].replace(0, np.nan).quantile(0.75),
-                                "colorbar": {"title": value},
-                            }
-                        }
-                    )
-
-                    fig.update_layout(geo_scope='world',  title_text = 'Conflict years across countries')
-
-                    fig.update_layout(
-                            autosize=False,
-                            margin = dict(
-                                    l=5,
-                                    r=140,
-                                    b=5,
-                                    t=30,
-                                    pad=4,
-                                    autoexpand=False
-                                ),
-                                width=700
-                        )
-                graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                js.plot(graphJSON,"chart2")
-                </py-script>  
+        <center>
             <div class="jumbotron">
-                <p class="lead">
-                    There is an evident relationship between WPS Index and recurring conflict. However, some markers in the WPS index get more impacted than others.
-                    Amongst all WPS markers, education,  financial inclusion, legal discrimination and initmate partner violence get overall impacted the most by recurring violence the most.
-                </p>
+                <h1>Impact of Conflict on Women's Wellbeing</h1>
+                <h5><i>Data Visualisation that explores the impact of recurring conflict on the wellbeing of women.</i></h5>
             </div>
-            <div class="row">
-                <div class="col-sm-11 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
-                    <div id="chart3"></div>
+        </center>
+        <div class = "box">
+                <p class="lead">
+                    One of our teammates belongs to Kashmir-the most militarized region in the world. Although, the conflict in Kashmir has always been counted by the civilians and armed forces casualties, there is less acknowledgement of other slow gender-based insidious outcomes of conflict. Through our project we aim to understand the relationship between conflict, its duration in different countries and the well-being of women-which can be measured by the Women Peace and Security Index (WPS Index).
+                </p>
+                <h5> 
+                    Measuring womens well being
+                </h5>
+                <p class="lead">
+                    The WPS Index measures the well-being of women across countries globally by scoring and ranking three basic dimensions- inclusion (economic, social, political); justice (formal laws and informal discrimination); and security (at the family, community, and societal levels)—which are captured and quantified through 11 indicators, where a higher score indicates better performance. The data is collected by Georgetown Institute for Women, Peace and Security for 2021/2022 and has ranked 170 countries on the 11 indicators.
+                </p>
+                <div class="lead">
+                       <div id="chart1"></div>
                 </div>
-            </div>
-                <py-script>
+                    <py-script>
+                        #import required libraries
+                        import warnings
+                        warnings.filterwarnings("ignore") 
+                        import pandas as pd
+                        import numpy as np
+                        import seaborn as sns
+                        import plotly.express as px
+                        import matplotlib.pyplot as plt
+                        import numpy as np
+                        import plotly.graph_objects as go
+                        import json
+                        import js
+                        import plotly
+                        from pyodide.http import open_url
+                        import warnings
+                        warnings.filterwarnings("ignore", category=DeprecationWarning) 
+        
+                        #reading the required data
+                        wps_index= pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Continent_Index_2021.csv'),encoding= 'unicode_escape')
+                        conflict_recurrence = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'))
+                        HDI_data = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/HDI_data_3.csv'),encoding= 'unicode_escape')
+        
+                        #correcting data types to datetime
+                        conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
+                        conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
+                        conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
+                        conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
+        
+                        #creating a calculated field for lengths of conflict by countries (in years)
+                        conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
+                        conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
+                        conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
+                        conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
+                        HDI_data['Gross national income (GNI) per capita']=HDI_data['Gross national income (GNI) per capita'].astype('string').astype('int').fillna(0)
+                        wps_index['Region']=wps_index['Region'].astype('category')
+        
+                        #normalizing education years and sex ratio
+                        wps_index['Education_years_norm'] = (100*(wps_index['Education_years '] - np.min(wps_index['Education_years ']))/np.ptp(wps_index['Education_years '])).astype(int) 
+                        wps_index['Sex_ratio_at_birth_norm'] = (100*(wps_index['Sex_ratio_at_birth'] - np.min(wps_index['Sex_ratio_at_birth']))/np.ptp(wps_index['Sex_ratio_at_birth'])).astype(int)    
+        
+                        #mapping the correct country names
+                        conflict_years_agg['country']=conflict_years_agg['country'].replace('Myanmar (Burma)','Myanmar')
+                        conflict_years_agg['country']=conflict_years_agg['country'].replace('Yemen (North Yemen)', 'Yemen')
+                        conflict_years_agg['country']=conflict_years_agg['country'].replace('Cambodia (Kampuchea)','Cambodia')
+                        conflict_years_agg['country']=conflict_years_agg['country'].replace('Russia (Soviet Union)','Russian Federation')
+                        conflict_years_agg['country']=conflict_years_agg['country'].replace('Serbia (Yugoslavia)','Serbia')
+                        conflict_years_agg['country']=conflict_years_agg['country'].replace('Bosnia-Herzegovina','Bosnia and Herzegovina')
+                        conflict_years_agg['country']=conflict_years_agg['country'].replace('Guinea-Bissau','Equatorial Guinea')
+                        conflict_years_agg['country']=conflict_years_agg['country'].replace('Macedonia, FYR','North Macedonia')
+                        
+                        #merging WPS and conflict data
+                        combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country', how='left')
+        
+                        #adding decile for WPS and conflict years
+                        combined['WPS_index_deciles'] = pd.qcut(combined['WPS_Index_score_2021'], q=10, precision=0, labels=[1,2,3,4,5,6,7,8,9,10])
+                        x=combined[combined['WPS_index_deciles'] == 10]['conflict_years'].fillna(0) 
+                        combined[combined['WPS_index_deciles'] == 10] = combined[combined['WPS_index_deciles'] == 10].assign(conflict_years=x) #missing value treatment for conflict years with 0s for countries with WPS decile =10
+                        combined['conflict_years'] = combined['conflict_years'].fillna(combined.groupby('WPS_index_deciles')['conflict_years'].transform('median')) #missing value treatment for conflict years with decile median for countries with WPS decile less than 10
+                        
+                        combined['conflict_year_deciles'] = pd.qcut(combined['conflict_years'], q=4, precision=0 , labels=[1,2,3,4])
+        
+                        WPS_HDI=pd.merge(left=combined,right=HDI_data, left_on='Country', right_on='Country', how='inner')
+        
+                        WPS_HDI['GNI_per_capita_decile'] = pd.qcut(WPS_HDI['Gross national income (GNI) per capita'], q=10, precision=0, labels=[10,9,8,7,6,5,4,3,2,1])
+                        chk=WPS_HDI[['Country','WPS_Index_score_2021','Gross national income (GNI) per capita','GNI_per_capita_decile']]
+                        chk=chk.sort_values(by=['GNI_per_capita_decile'], ascending=False)
+        
+                        combined_scatter=WPS_HDI[['GNI_per_capita_decile','Education_years_norm','Financial_inclusion_perc','Absensce_of_legal discrimination_agg_score'
+                            ,'Cell_phone_use_perc'
+                            ,'Perception_of_community_safety_perc','Employment_perc','Parliamentary_representation_perc'
+                            # ,'Discriminatry_norms_perc','Intimate_partner_violence_perc'
+                            # ,'Organized_violence_deaths_per_10k'
+                            # ,'Sex_ratio_at_birth_norm'
+                            ]]
+                        combined_scatter=combined_scatter.groupby('GNI_per_capita_decile').mean()
+                        combined_scatter.reset_index(inplace=True)
+                        combined_scatter=combined_scatter.sort_values(by=['GNI_per_capita_decile'], ascending=False)
+        
+                        # Visualizing  HDI data
 
-                    #import required libraries
-                    import pandas as pd
-                    import numpy as np
-                    #import chart_studio.plotly as py
-                    #import cufflinks as cf
-                    import seaborn as sns
-                    import plotly.express as px
-                    import matplotlib.pyplot as plt
-                    import numpy as np
+                        # Plot the histogram thanks to the distplot function
+                        sns.set(style="darkgrid")
+                        sns.histplot( data=WPS_HDI["Human Development Index (HDI) "], kde=True, color="skyblue", bins=10 )
+                        plt.title('Count of countries across HDI value bins')
+                        plt.ylabel('#Countries')
+                        
 
-                    print(1)
-
-                    #reading the required data
-                    wps_index= pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'),encoding= 'unicode_escape')
-                    conflict_recurrence = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'))
-                    
-                    print(2)
-
-                    #correcting data types
-                    conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
-                    conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
-                    conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
-                    conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
-
-                    print(3)
-
-                    #creating new columns
-                    conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
-                    conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
-                    conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
-                    conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
-
-                    print(4)
-
-                    #mapping the country names
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Myanmar (Burma)','Myanmar')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Yemen (North Yemen)', 'Yemen')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Cambodia (Kampuchea)','Cambodia')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Russia (Soviet Union)','Russian Federation')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Serbia (Yugoslavia)','Serbia')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Bosnia-Herzegovina','Bosnia and Herzegovina')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Guinea-Bissau','Equatorial Guinea')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Macedonia, FYR','North Macedonia')    
-                    
-                    print(5)
-
-                    #merging WPS and conflict data
-                    combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country', how='left')
-
-                    combined['WPS_index_deciles'] = pd.qcut(combined['WPS_Index_score_2021'], q=10, precision=0, labels=[1,2,3,4,5,6,7,8,9,10])
-                    x=combined[combined['WPS_index_deciles'] == 10]['conflict_years'].fillna(0)
-                    combined[combined['WPS_index_deciles'] == 10] = combined[combined['WPS_index_deciles'] == 10].assign(conflict_years=x)
-                    combined['conflict_years'] = combined['conflict_years'].fillna(combined.groupby('WPS_index_deciles')['conflict_years'].transform('median'))
-
-                    combined['conflict_year_deciles'] = pd.qcut(combined['conflict_years'], q=4, precision=0 , labels=[1,2,3,4])
-
-                    chk=combined[['Country','WPS_Index_score_2021','conflict_years','WPS_index_deciles','conflict_year_deciles']]
-                    chk=pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
-                    chk=chk.sort_values(by=['conflict_years'])
-
-                    # use the function regplot to make a scatterplot
-                    fig = plt.figure(figsize=(30,15))
-                    sns.regplot(x=chk["WPS_Index_score_2021"], y=chk["conflict_years"],label='Country')
-                    plt.title('WPS Index Score 2021 vs. Conflict years', fontsize=20)
-                    plt.xlabel('WPS Index Score 2021', fontsize=16)
-                    plt.ylabel('Conflict years', fontsize=16)
-
-                    # add annotations one by one with a loop
-                    for line in range(0,chk.shape[0]):
-                        plt.text(chk.WPS_Index_score_2021[line]
-                                , chk.conflict_years[line]
-                                , chk.Country[line]
-                                , horizontalalignment='left'
-                                , size=13
-                                , color='black'
-                                , weight='light')
-
-                    plt.show()
-                    pyscript.write("chart3",fig)                 
-                </py-script>   
-            <div class="jumbotron">
-                <p class="lead">
-                    As evident in the plot between WPS Index and conflict years, a rise in conflict years reduces WPS Index (excluding the outlier, India with 178 years of conflict). Most countries who rank high on conflict years rank low on the WPS index. Three out of four countries who rank in the bottom quartile for WPS have an ongoing recurring conflict. 
-                </p>
-                <p class="lead">
-                    While most countries comply with the relationship between WPS and Conflict years, we discovered another factor that may impact the WPS Index-The Human Development Index. Countries with lower Human Development Index have much lower WPS due to conflict compared to countries with the same conflict years.
-                    We will explore this relation in detail in the second half of our project.
-                </p>
-            </div>
-            <div class="row">
-                <div class="col-sm-11 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+                        plt.show()
+                        pyscript.write("chart1",plt) 
+                    </py-script> 
+                <div class="lead">
+                    <div id="chart2"></div>
+                </div>
+                    <py-script>
+                        # Plot the histogram thanks to the distplot function
+                        plt.close()
+                        sns.set(style="darkgrid")
+                        sns.histplot( data=WPS_HDI["WPS_Index_score_2021"], color="pink", kde=True, alpha=0.6,bins=10)
+                        plt.title('Count of countries across WPS Index value bins')
+                        plt.ylabel('#Countries')
+                        plt.show()
+                        pyscript.write("chart2",plt) 
+                    </py-script>
+                <div class="lead">
+                    <div id="chart3"></div>
+                </div> 
+                    <py-script>
+                        plt.close()
+                        sns.set(style="darkgrid")
+                        sns.histplot(data=WPS_HDI, x="Human Development Index (HDI) ", color="skyblue", label="HDI", kde=True,alpha=0.6, bins=10)
+                        sns.histplot(data=WPS_HDI, x="WPS_Index_score_2021", color="pink", label="WPS Index", kde=True,alpha=0.6, bins=10)
+                        plt.title('Evident disparity in spread of countries across HDI and WPS Index')
+                        plt.ylabel('#Countries')
+                        plt.xlabel('Index Values')
+                        plt.legend() 
+                        plt.show()
+                        pyscript.write("chart3",plt)
+                    </py-script> 
+                <div class="lead">
                     <div id="chart4"></div>
                 </div>
-            </div>
-                <py-script>
-                    #import required libraries
-                    import pandas as pd
-                    import numpy as np
-                    #import chart_studio.plotly as py
-                    #import cufflinks as cf
-                    import seaborn as sns
-                    import plotly.express as px
-                    import matplotlib.pyplot as plt
-                    import numpy as np
-                    
+                    <py-script>
+                        df = wps_index.drop('Region', axis=1)
+                        cols_dd = np.array(df.columns)[2:]
+                        fig = go.Figure()
 
-                    #reading the required data
-                    wps_index= pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'),encoding= 'unicode_escape')
-                    conflict_recurrence = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'))
-                    
-                    #correcting data types
-                    conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
-                    conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
-                    conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
-                    conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
+                        for i, value in enumerate(cols_dd):
+                        # use a different color axis for each trace... makes it more responsive
+                            ca = f"coloraxis{i+2}"
 
-                    #creating new columns
-                    conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
-                    conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
-                    conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
-                    conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
+                            figc = px.choropleth(
+                                df,
+                                locations="Country",  # Spatial coordinates
+                                color=value,  # Data to be color-coded
+                                color_continuous_scale="deep",    #   this value is not being honored, if I change it, the colors do not change
+                                hover_name="Country",
+                                scope="world", locationmode = 'country names'
+                            ).update_traces(visible= True if value==cols_dd[0] else False
+                                            , coloraxis=ca
+                                        )
 
-                    #mapping the country names
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Myanmar (Burma)','Myanmar')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Yemen (North Yemen)', 'Yemen')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Cambodia (Kampuchea)','Cambodia')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Russia (Soviet Union)','Russian Federation')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Serbia (Yugoslavia)','Serbia')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Bosnia-Herzegovina','Bosnia and Herzegovina')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Guinea-Bissau','Equatorial Guinea')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Macedonia, FYR','North Macedonia')    
-                    
-                    #merging WPS and conflict data
-                    combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country', how='left')
+                            fig = fig.add_traces(figc.data)
+                            fig.update_layout(title =f"<b>{cols_dd[0]}</b>  ") 
+                            fig = fig.update_layout(
+                                {
+                                    ca: {
+                                        "cmin": df[value].replace(0, np.nan).quantile(0.25),
+                                        "cmax": df[value].replace(0, np.nan).quantile(0.75),
+                                        "colorbar": {"title": value},
+                                    }
+                                }
+                            )
 
-                    combined['WPS_index_deciles'] = pd.qcut(combined['WPS_Index_score_2021'], q=10, precision=0, labels=[1,2,3,4,5,6,7,8,9,10])
-                    x=combined[combined['WPS_index_deciles'] == 10]['conflict_years'].fillna(0)
-                    combined[combined['WPS_index_deciles'] == 10] = combined[combined['WPS_index_deciles'] == 10].assign(conflict_years=x)
-                    combined['conflict_years'] = combined['conflict_years'].fillna(combined.groupby('WPS_index_deciles')['conflict_years'].transform('median'))
+                            fig.update_layout(  geo_scope='world')
 
-                    combined['conflict_year_deciles'] = pd.qcut(combined['conflict_years'], q=4, precision=0 , labels=[1,2,3,4])
+                            fig.update_layout(
+                                updatemenus=[
+                                    {
+                                        "buttons": [
+                                            {
+                                                "label": f"{m}",
+                                                "method": "update",
+                                                "args": [
+                                                    {
+                                                        "visible": [
+                                                            (m2 == m )
+                                                            for m2 in cols_dd
+                                                        ]
+                                                    },
+                                                    {"title": f"<b>{m}</b> "},
+                                                ],
+                                            }
+                                            for m in cols_dd
+                                        ],
+                                        "showactive":True,
+                                        "x":0.1,
+                                        "xanchor":"left",
+                                        "y":1.1,
+                                        "yanchor":"top",
+                                        "pad": {"l": -10, "t": -5},
+                                    }
+                                ],
+                                autosize=False,
+                                width=1200,
+                                # <!-- margin={"l": 10, "r": 120, "t": 30, "b": 10, "autoexpand":True} -->
+                            )
 
-                    chk=combined[['Country','WPS_Index_score_2021','conflict_years','WPS_index_deciles','conflict_year_deciles']]
-                    chk=pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
-                    chk=chk.sort_values(by=['conflict_years'])
+                        
+                        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                        js.plot(graphJSON,"chart4")
+                    </py-script> 
 
-                    print(3)
+                    <div class="lead">
+                        <div id="chart5"></div>
+                    </div>
+                        <py-script>
+                            #create a scatter plot to see relation between WPS index and conflict
 
-                    #Visualizing cases over time across countries
-                    # chk=combined[['Country','WPS_Index_score_2021','conflict_years']]
-                    fig = px.choropleth(chk, locations="Country", 
-                                        color=chk["WPS_Index_score_2021"],
-                                        locationmode='country names', hover_name="Country", hover_data=["WPS_Index_score_2021",'conflict_years'],
-                                        animation_frame=chk["conflict_years"],
-                                        animation_group=chk["Country"],
-                                        range_color=[0,1],
-                                        title='Cases over time across countries', color_continuous_scale=px.colors.sequential.Plasma)
-                    print(4)
+                            #excluding the outliers to observe the relation between WPS index and conflict years
+                            chk=combined[['Country','WPS_Index_score_2021','conflict_years','WPS_index_deciles','conflict_year_deciles']]
+                            chk=chk.sort_values(by=['conflict_years'])
+                            scatter_data=pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
 
-                    fig.update(layout_coloraxis_showscale=True)
-                    print(5)
-                    #fig.show()
-                    print(6)
-                    
-                    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                    js.plot(graphJSON,"chart4")
-                </py-script>
-            <div class="row">
-                <div class="col-sm-11 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
-                    <div id="chart5"></div>
-                </div>
-            </div>
-                <py-script>
-                    #import required libraries
-                    import pandas as pd
-                    import numpy as np
-                    #import chart_studio.plotly as py
-                    #import cufflinks as cf
-                    import seaborn as sns
-                    import plotly.express as px
-                    import matplotlib.pyplot as plt
-                    import numpy as np
-                    
+                            # use the function regplot to make a scatterplot
+                            plt.figure(figsize=(20,10))
+                            sns.regplot(x=scatter_data["WPS_Index_score_2021"], y=scatter_data["conflict_years"],label='Country')
+                            plt.title('WPS Index Score 2021 vs. Conflict years', fontsize=20)
+                            plt.xlabel('WPS Index Score 2021', fontsize=16);
+                            plt.ylabel('Conflict years', fontsize=16);
 
-                    #reading the required data
-                    wps_index= pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/WPS_Index_2021.csv'),encoding= 'unicode_escape')
-                    conflict_recurrence = pd.read_csv(open_url('https://raw.githubusercontent.com/ashkas3/Final-DV-Project/master/ConflictRecurrenceDatabase.csv'))
-                    
-                    #correcting data types
-                    conflict_recurrence['conf_ep_start'] = pd.to_datetime(conflict_recurrence['conf_ep_start'])
-                    conflict_recurrence['conf_ep_end'] = pd.to_datetime(conflict_recurrence['conf_ep_end'])
-                    conflict_recurrence['dyad_ep_start'] = pd.to_datetime(conflict_recurrence['dyad_ep_start'])
-                    conflict_recurrence['dyad_ep_end'] = pd.to_datetime(conflict_recurrence['dyad_ep_end'])
+                            plt.show()
+                            pyscript.write("chart5",plt)
+                        </py-script> 
+                    <div class="lead">
+                        <div id="chart6"></div>
+                    </div>
+                        <py-script>
+                            fig = px.choropleth(chk, locations="Country", 
+                                                color=chk["WPS_Index_score_2021"],
+                                                locationmode='country names', hover_name="Country", hover_data=["WPS_Index_score_2021",'conflict_years'],
+                                                animation_frame=chk["conflict_years"],
+                                                animation_group=chk["Country"],
+                                                range_color=[0,1],
+                                            
+                                                title='Change in WPS Index 2021 by increasing conflict years across countries', color_continuous_scale=px.colors.sequential.Plasma)
+                            fig.update(layout_coloraxis_showscale=True)
 
-                    #creating new columns
-                    conflict_recurrence['conflict_years'] = ((conflict_recurrence['conf_ep_end'] - conflict_recurrence['conf_ep_start']).dt.days)/364.25
-                    conflict_recurrence['conflict_years']=conflict_recurrence['conflict_years'].fillna(0).astype('int')
-                    conflict_years=pd.DataFrame(conflict_recurrence.groupby(['country','conflict_new_id'])['conflict_years'].agg('max').reset_index())
-                    conflict_years_agg=pd.DataFrame(conflict_years.groupby(['country'])['conflict_years'].agg('sum').reset_index())
+                            graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                            js.plot(graphJSON,"chart6")
+                        </py-script>
+                    <div class="lead">
+                        <div id="chart7"></div>
+                    </div>
+                        <py-script>
+                            #Visualizing cases over time across countries
+                            WPS_HDI['GNI_per_capita_decile'] = pd.qcut(WPS_HDI['Gross national income (GNI) per capita'], q=10, precision=0, labels=[10,9,8,7,6,5,4,3,2,1])
+                            chk=WPS_HDI[['Country','WPS_Index_score_2021','Gross national income (GNI) per capita','GNI_per_capita_decile']]
+                            chk=chk.sort_values(by=['GNI_per_capita_decile'], ascending=False)
 
-                    #mapping the country names
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Myanmar (Burma)','Myanmar')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Yemen (North Yemen)', 'Yemen')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Cambodia (Kampuchea)','Cambodia')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Russia (Soviet Union)','Russian Federation')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Serbia (Yugoslavia)','Serbia')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Bosnia-Herzegovina','Bosnia and Herzegovina')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Guinea-Bissau','Equatorial Guinea')
-                    conflict_years_agg['country']=conflict_years_agg['country'].replace('Macedonia, FYR','North Macedonia')    
-                    
-                    #merging WPS and conflict data
-                    combined=pd.merge(left=wps_index,right=conflict_years_agg, left_on='Country', right_on='country', how='left')
+                            fig = px.choropleth(chk, locations="Country", 
+                                                color=chk["WPS_Index_score_2021"],
+                                                # color_continuous_scale='Spectral',
+                                                locationmode='country names', hover_name="Country", hover_data=["WPS_Index_score_2021",'GNI_per_capita_decile'],
+                                                animation_frame=chk["GNI_per_capita_decile"],
+                                                animation_group=chk["Country"],
+                                                range_color=[0,1],
+                                                
+                                                title='Change in WPS index by increase in Gross National Income per capita', color_continuous_scale=px.colors.sequential.Plasma)
+                            fig.update(layout_coloraxis_showscale=True)
 
-                    combined['WPS_index_deciles'] = pd.qcut(combined['WPS_Index_score_2021'], q=10, precision=0, labels=[1,2,3,4,5,6,7,8,9,10])
-                    x=combined[combined['WPS_index_deciles'] == 10]['conflict_years'].fillna(0)
-                    combined[combined['WPS_index_deciles'] == 10] = combined[combined['WPS_index_deciles'] == 10].assign(conflict_years=x)
-                    combined['conflict_years'] = combined['conflict_years'].fillna(combined.groupby('WPS_index_deciles')['conflict_years'].transform('median'))
+                            graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                            js.plot(graphJSON,"chart7")
+                        </py-script>
+                    <div class="lead">
+                        <div id="chart7"></div>
+                    </div>
+                        <py-script>
+                            combined_scatter=WPS_HDI[['GNI_per_capita_decile','Education_years_norm','Financial_inclusion_perc','Absensce_of_legal discrimination_agg_score'
+                                                    ,'Cell_phone_use_perc'
+                                                    ,'Perception_of_community_safety_perc','Employment_perc','Parliamentary_representation_perc'
+                                                    # ,'Discriminatry_norms_perc','Intimate_partner_violence_perc'
+                                                    # ,'Organized_violence_deaths_per_10k'
+                                                    # ,'Sex_ratio_at_birth_norm'
+                                                    ]]
+                            combined_scatter=combined_scatter.groupby('GNI_per_capita_decile').mean()
+                            combined_scatter.reset_index(inplace=True)
+                            combined_scatter=combined_scatter.sort_values(by=['GNI_per_capita_decile'], ascending=False)
 
-                    combined['conflict_year_deciles'] = pd.qcut(combined['conflict_years'], q=4, precision=0 , labels=[1,2,3,4])
+                            import warnings
+                            warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-                    chk=combined[['Country','WPS_Index_score_2021','conflict_years','WPS_index_deciles','conflict_year_deciles']]
-                    chk=pd.DataFrame(chk[chk['conflict_years'] < 75]).reset_index()
-                    chk=chk.sort_values(by=['conflict_years'])
+                            plot_data = pd.melt(combined_scatter, id_vars='GNI_per_capita_decile', var_name='attribute', value_name='attribute_value')
+                            plot_data.head()
 
-                    print(3)
+                            fig = px.line_polar(plot_data,
+                                                r='attribute_value', 
+                                                theta='attribute',
+                                                line_close=True, 
+                                                animation_frame = 'GNI_per_capita_decile',
+                                                title='Change in women wellbeing measures with increasing Gross National Income per capita',
+                                                range_r=[0,100],
+                                                template = 'ggplot2'
+                                        )
 
-                    #radar plot
+                            
 
-                    combined_scatter=combined[['conflict_years','Financial_inclusion_perc','Employment_perc','Cell_phone_use_perc','Parliamentary_representation_perc','Perception_of_community_safety_perc','Intimate_partner_violence_perc','Discriminatry_norms_perc']]
-                    combined_scatter=combined_scatter.groupby('conflict_years').mean()
-                    combined_scatter.reset_index(inplace=True)
-                    plot_data = pd.melt(combined_scatter, id_vars='conflict_years', var_name='attribute', value_name='attribute_value')
-                    plot_data.head()
+                            graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                            js.plot(graphJSON,"chart7")
+                        </py-script>
+                    <div class="lead">
+                        <div id="chart8"></div>
+                    </div>
+                        <py-script>
+                            # Create a chart showing relation between WPS, GNI and conflict alongwith a color by continent and option to filter continents. On hover shows the WPS index parameter values
+                            
+                            plt.figure(figsize=(20,10))
 
-                    fig = px.line_polar(plot_data,
-                                        r='attribute_value', 
-                                        theta='attribute',
-                                        line_close=True, 
-                                        animation_frame = 'conflict_years',
-                                        title='Spotify',
-                                        range_r=[0,100],
-                                        template = 'ggplot2'
-                                )
-                    
-                    
-                    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                    js.plot(graphJSON,"chart5")
-                </py-script>
+                            # use the scatterplot function to build the bubble map
+                            ax = sns.scatterplot(data=WPS_HDI, y="Gross national income (GNI) per capita", x="WPS_Index_score_2021", size="conflict_years", 
+                                            sizes=(30, 3000),
+                                            c=WPS_HDI['Region'].cat.codes, 
+                                cmap="Accent", 
+                                alpha=0.9, 
+                                edgecolors="white", 
+                                hue="Region",
+                                palette="tab10",
+                                linewidth=2, legend=True
+                                            )
+                            
+                            plt.title("Increasing WPS Index with increasing GNI and decreasing conflict years for a country")
+
+                            plt.legend(bbox_to_anchor=(1, 1), loc='upper left', fontsize='10', title_fontsize='14', labelspacing=1)
+                            
+                            plt.show()
+                            pyscript.write("chart8",plt)
+                        </py-script>
+
+
+
+
+
+
+                <h5> 
+                    Measuring recurring conflict
+                </h5>
+                <p class="lead">
+                    The other measure is the years of conflict, that is how long has the conflict been ongoing in a country. The data is collected by the Uppsala Conflict Data Program (UCDP). ​​The episodes identified in the PRIO Conflict Recurrence Database follows the state-based conflicts identified by UCDP data, but are extended to include all violent events related to that conflict, rather than relying on the commonly used 25-death threshold. The conflict is counted as recurring when there is at least one calendar year between the last event in the previous episode, and the first event in the following episode.
+                </p>
+                
+                <h5> 
+                    Relationship between conflict and womens wellbeing
+                </h5>
+                <p class="lead">
+                    Our hypothesis is that there is a correlation between conflict years and womens well-being. Inorder to test it we did a scatterplot graph between years of conflict and WPS Index
+                </p>
+               
+                <p class="lead">As it is evident, there is a direct correlations between years of conflict and WPS Index. As the years of conflict increase, the WPS index falls.
+
+                    (Explain relationship at a macro-level) Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Cras semper auctor neque vitae tempus. Dapibus ultrices in iaculis nunc sed augue. Mi in nulla posuere sollicitudin aliquam. Mattis molestie a iaculis at erat. Non consectetur a erat nam. Mauris vitae ultricies leo integer. Nunc sed velit dignissim sodales ut eu sem integer. Ac feugiat sed lectus vestibulum. Sit amet consectetur adipiscing elit pellentesque habitant morbi. Id leo in vitae turpis. Diam maecenas sed enim ut.
+                </p>
+        </div>
     </body>
 </html>
+
+
