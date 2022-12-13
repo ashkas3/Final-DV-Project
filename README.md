@@ -18,7 +18,7 @@ Carissa, with a design background and some research experience, wrote the resear
 
 We all worked and brainstormed together to decide the story and flow of our project. 
 
-Link to research paper - https://docs.google.com/document/d/1Jk8wwgMWHC0b9G_OyCn2SrTn8X0e3BvS/edit
+Link to research paper - https://docs.google.com/document/d/1sGTUdm_ZeXkeGDpdWdr5S-8wBKK3aBMW/edit
 
 Link to video - https://drive.google.com/file/d/1Btnd0nSI_BmZZQzb1AEhioHTHYFsu4FZ/view
 
