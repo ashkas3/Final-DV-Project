@@ -14,7 +14,7 @@ All members of our team come from a non-CS background. However, we split the wor
 
 Sumairha, coming from a design background with an interest in research did the end-to-end research for this project (data sources, evidence for narrative, etc.), designed the final presentation/website and made the demo video.
 Ashka, with a background in analytics and some beginner level coding experience, performed EDAs and cleaned the datasets, built the visualizations in python and coded/styled the webapp hosted in Github using HTML/CSS (using PyScript for python code block).
-Carissa, with a design background and some research experience, wrote the research paper for our project.
+Carissa, with a design background and research experience, worked on choosing the visualizations, designing the presentation and writing the research paper for our project.
 
 We all worked and brainstormed together to decide the story and flow of our project. 
 
