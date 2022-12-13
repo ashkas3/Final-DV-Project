@@ -64,10 +64,11 @@
         <div class = "box">
                 <p class="lead">
                     <i>
+                    <br><br>
                     Globally, one in three women have been subjected to physical and/or sexual intimate partner violence, non partner sexual violence, or both at least once in their life. On average, women are paid 24% less than men for comparable work, across all regions and sectors. Moreover, nearly two thirds of the world’s 781 million illiterate adults are women, a proportion that has remained unchanged for two decades. <a href="https://www.oxfam.org/en/what-we-do/issues/gender-justice-and-womens-rights">(link)</a>
                     <br><br>
                     Everyday, women across the globe, in each country are confronted by discrimination and injustice. They face abuse, violence and unequal treatment at homes, workplace and in their communities. They are denied opportunities to learn, earn or grow. Gendered discrimination is prevalent across the world, but women in some parts of the world are more vulnerable compared to others. Our project is an attempt to understand which countries are better for women and which are not. We will also find out reasons why some countries are better for women's well-being compared to others.
-                    <br>
+                    <br><br>
                     </i>
                 </p>
                 <div class="lead">
@@ -183,6 +184,7 @@
                     For example, Bahrain was in top quartile for HDI but its WPS was towards the third quartile. India, Kyrgyzstan (Keer-guzh-stahn), Iraq, Qatar, Indonesia, Vietnam, Botswana, Morocco, SriLanka also had huge disparities in their ranking of HDI and WPS.
                     <br><br>
                     We concluded that <b>development of a country and women's well-being may not be the same thing.</b>
+                    <br><br>
                 </p>  
                 <div class="lead">
                     <h3>Women on the globe</h3>
@@ -264,7 +266,7 @@
                         js.plot(graphJSON,"chart4")
                     </py-script> 
                 <p class="caption">
-                    WPS Index score and the other women development parameters on a choropleth map   
+                    Figure 1: Interactive visualization mapping WPS index onto a map. The map allows for users to control for specific WPS indicators and see how countries are performing both overall, and on specific factors   
                 </p>
                 <p class="lead">
                         <br><br>
@@ -279,6 +281,7 @@
                         A) Countries which have had a history of conflict seemed to be doing poorly on the WPS scale. Countries in South Asia, Middle East and Africa have a history of long and recurring conflict which are also the countries that are in the lower quartile of WPS.
                         <br><br>
                         B) Developed countries were generally speaking doing well on the WPS Index. After looking at various measures of development of a country like life expectancy, years of schooling, Gross Domestic Income etc we noticed a strong correlation
+                        <br><br>
                 </p>
                 <div class="lead">
                     <h3>Conflict and Women</h3>
@@ -310,7 +313,9 @@
                             pyscript.write("chart5",plt)
                     </py-script> 
                     <p class="caption">
-                            WPS Index score against Conflict years. (India has been dropped from this data visualization due to its 178 years of conflict, making it an outlier).
+                        Figure 2: Scatterplot representing the relationship between conflict years and WPS index score. The line represents the average between the relationships. 
+                        <br>
+                        (India has been dropped from this data visualization due to its 178 years of conflict, making it an outlier).
                     </p>
                     <p class="lead">
                         <br><br>
@@ -334,7 +339,9 @@
                             js.plot(graphJSON,"chart6")
                         </py-script>
                     <p class="caption">
-                        WPS Index score against Conflict years on a choropleth map. (India has been dropped from this data visualization due to its 178 years of conflict, making it an outlier).
+                        Figure 3: World heat map that highlights countries with similar number of recurring conflict years with corresponding WPS index scores. 
+                        <br> 
+                        (India has been dropped from this data visualization due to its 178 years of conflict, making it an outlier).
                     </p>
                     <p class="lead">
                         <br><br>
@@ -343,6 +350,7 @@
                         The other outcome of conflict is domestic violence. The lack of opportunities and the state of conflict effects the mental-health of men which can lead to increased violence against women. The conflict in Kashmir increased after 2019 after the abrogation of article 370. In 2019, the helpline received 55 calls, but in 2020, 177 calls came through. However, those numbers have increased further over the last three months, with over 120 distress calls made by women seeking help during this time. You can read about the increase in cases of domestic violence from conflict <a href="https://www.dw.com/en/kashmir-the-link-between-armed-conflict-and-domestic-violence/a-57268013">here</a>.
                         <br><br>
                         What was interesting that countries with same conflict years, the WPS Index differed. Even at 0 conflict years first-world countries like Canada and those in western Europe score higher than countries like Brazil and Mauritania. For example, South Sudan, Chad, Libya, Spain and Yemen have the same conflict years but the WPS Index for them varies. This lead us to our second factor- Gross Domestic Income.
+                        <br><br>
                     </p>
                     <div class="lead">
                         <h3>Nation's Wealth and Women</h3>
@@ -386,7 +394,7 @@
                             js.plot(graphJSON,"chart7")
                         </py-script> 
                     <p class="caption">
-                        Gross National Income against WPS Parameters
+                        Figure 4: Radar plot mapping specific WPS indicators interactively responding to changing GNI value
                     </p>
                     <p class="lead">
                         <br><br>
@@ -416,7 +424,7 @@
                             js.plot(graphJSON,"chart8")
                         </py-script>
                     <p class="caption">
-                        Gross National Income against WPS Index on a choropleth map
+                        Figure 5: World heat map highlighting countries with similar GNI per capita values with corresponding WPS index scores.
                     </p>    
                     <p class="lead">
                         <br><br>
@@ -463,7 +471,7 @@
                             pyscript.write("chart9",plt)
                         </py-script>
                 <p class="caption">
-                    Gross National Income against WPS Index with conflict years
+                    Figure 6: Scatterplot illustrating three variables: x-axis is WPS index score, y-axis is GNI per capita, and the size of each bubble indicates number of recurring conflict years
                 <p class="lead">
                     <br><br>
                     The average conflict years for countries in the middle range is about thirty years, as we move towards higher GNI and WPS, the size of the country reduces, showing a reduction in conflict years. Countries towards the upper right like Norway, Finland, Iceland, Denmark and the best places for women well being because of less conflict and higher GNI.
@@ -473,6 +481,7 @@
                     An interesting observation was that more than 90% of countries that were in top percentile of WPS were also in the top percentile of GNI Index. And 87.5% of the countries which had lower WPS index had a history of recurring conflict. This strong correlation validated our assumption. There are multiple reasons that contribute to women’s well-being in a nation but through our exploration we concluded that Income and conflict in a country have a strong correlation with women's well-being in the country.
                     <br><br>
                     <b>In order to create a better world for women, the wealth in the world needs to be more equitably divided so that poor countries can create better living for women. The insidious effect of long term conflict on women also needs to be acknowledged and countries need to take active initiates to mitigate the impact conflict has on women's well being.</b>
+                    <br><br>
                 </p>
                    
         </div>
